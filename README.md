@@ -72,7 +72,7 @@ The first test of range_parallelism = 190 and value_parallelism = 1 actually did
 
 This beats the faster software solutions by about two orders of magnitude.
 
-## Results
+## Conclusion
 
 Most importantly, after finally finding the right combination for performance, it only takes a simple script to go back to the low area ("basic") solution, if need be. This flexibility was exactly what I wanted, where the Area vs. Performance tradeoff is clearly illustrated and addressed.
 
