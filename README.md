@@ -55,3 +55,5 @@ As the parallelism increases, we want a larger number of smaller memory banks, e
 ## Results
 
 Now that we have a design we can easily tile by running a short script, what do the ideal parameters for parallelizing the design actually look like? One idea would be to start with range_parallelism = 1 and value_parallelism = 1, then increase until we exceed the area available on the FPGA. This approach produces the following graph:
+
+![Block diagram](images/Parallelism effects.png)
