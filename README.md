@@ -1,6 +1,6 @@
 # Advent of FPGA
 
-This is an FPGA based solution to Day 5 Part 1 (Cafeteria) of Advent of Code. The problem can be found here: [link](https://adventofcode.com/2025/day/5)
+This is a sub 1μs FPGA based solution to Day 5 Part 1 (Cafeteria) of Advent of Code. The problem can be found here: [link](https://adventofcode.com/2025/day/5)
 
 My solution targets the KV260 board, as it is more realistic than something huge like a Versal chip, and the KV260 is also the prize of the competition!
 
@@ -33,7 +33,7 @@ The usual approach to solving this problem in software involves sorting the rang
 
 If we assume we have access to all of the ranges and values, the most basic approach involves starting with the very first value, and iterating through the ranges until we find a match, or exhaust our options. We then repeat this process with the next value, and the next, until we have checked all of the values.
 
-This approach is much more easily implementable on an FPGA. It takes up very little area, and doesn't use much power. However, it's extremely slow. On a 100Mhz clock, it takes 1.39ms! That's slower than a lot of the sorting-based software solutions, which can take 35-50μs. 
+This approach is much more easily implementable on an FPGA. It takes up very little area (0.09%), and doesn't use much power. However, it's extremely slow. On a 100Mhz clock, it takes 1.39ms! That's slower than a lot of the sorting-based software solutions, which can take 35-50μs. 
 
 How could we improve this?
 
@@ -56,4 +56,25 @@ As the parallelism increases, we want a larger number of smaller memory banks, e
 
 Now that we have a design we can easily tile by running a short script, what do the ideal parameters for parallelizing the design actually look like? One idea would be to start with range_parallelism = 1 and value_parallelism = 1, then increase until we exceed the area available on the FPGA. This approach produces the following graph:
 
-![Block diagram](images/Parallelism effects.png)
+![Block diagram](images/Parallelism_effects.png)
+
+The graph follows a semi-reciprocal pattern, with increasing parallelism greatly decreasing the runtime at the start, but beginning to fall off in effectiveness toward the end. This makes sense, as the parallelism theoretically acheives the same speedup factor any time it is doubled, rather than increased by a discrete amount.
+
+Within the sampling strategy, the most effective parameter values for performance was range_parallelism = 32 and value_parallelism = 32. This design passed timing at a clock period of 7.9ns, resulting in a runtime of 1327.2ns. It is also possible to push this approach slightly farther and acheive a faster design at range_parallelism = 43 and value_parallelism = 40. This passes timing with a clock period of 10.1ns, resulting in a runtime of 1151.4ns. 
+
+So, 1151.4ns. Can we beat it?
+
+Interestingly enough, the limiting factor for increasing the parallelism beyond 43 and 40 is the 94% usage of the CARRY8 primitive, which is the fast adder logic. The counters, along with the sum accumulation logic, begin to take up massive amounts of the CARRY8s as we increase the parallelism. This is because each of our memory banks are small enough that there are many of them, but big enough that they still use enough logic to cumulatively occupy most of the FPGA. Suddenly, our sweet spot is not feeling so sweet anymore. Hypothetically, this might be the worst idea for limiting our area, as a few large memories, or a bunch of tiny memories might both be better than something in the middle. It was already clear that when we use a few large memories, area usage is very low (0.09%).
+
+Would area usage also decrease if we had a huge number of tiny memories? That gain would kick in the most if we can entirely max out our parallelism in either the range or value domain. Since we have 190 ranges, but 1000 values, the range domain is the easy choice. The choice of range_parallelism = 190 and value_parallelism = 1 would be the case in which every single range is checked in one clock cycle, and we walk through all the values.
+
+The first test of range_parallelism = 190 and value_parallelism = 1 actually did fit, and with much lower area than expected. Even a test of range_parallelism = 190 and value_parallelism = 10 only occupied 24.03% of the area, while delivering a runtime of 1010ns! The sub 1μs solution was finally within reach. Increasing the value_parallelism until the design occupied a large portion of the FPGA allowed for range_parallelism = 190 and value_parallelism = 39 (87.46% area usage) to emerge as the clear winner. It met timing with an 11.4ns clock period, and a total runtime or 307.8ns!
+
+This beats the faster software solutions by about two orders of magnitude.
+
+## Results
+
+Most importantly, after finally finding the right combination for performance, it only takes a simple script to go back to the low area ("basic") solution, if need be. This flexibility was exactly what I wanted, where the Area vs. Performance tradeoff is clearly illustrated and addressed.
+
+And if you want to give it a shot, see if you can find the right parameters and clock frequency to beat my time on the KV260 or a different device!
+
