@@ -1,6 +1,6 @@
 ## Build Sweep Results
 
-These are the results 
+These are the results of the builds.
 
 | Range Parallelism | Value Parallelism | Clock Period (ns) | Clock Cycles | Runtime (ns) | LUT Util (%) | CARRY8 Util (%) |
 |------------------:|------------------:|------------------:|-------------:|-------------:|------------:|----------------:|
