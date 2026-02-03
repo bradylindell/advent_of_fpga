@@ -56,7 +56,7 @@ As the parallelism increases, we want a larger number of smaller memory banks, e
 
 Now that we have a design we can easily tile by running a short script, what do the ideal parameters for parallelizing the design actually look like? One idea would be to start with range_parallelism = 1 and value_parallelism = 1, then increase until we exceed the area available on the FPGA. This approach produces the following graph:
 
-![Block diagram](images/Parallelism_effects.png)
+![Block diagram](results/Parallelism_effects.png)
 
 The graph follows a semi-reciprocal pattern, with increasing parallelism greatly decreasing the runtime at the start, but beginning to fall off in effectiveness toward the end. This makes sense, as the parallelism theoretically acheives the same speedup factor any time it is doubled, rather than increased by a discrete amount.
 
